@@ -4,7 +4,7 @@ import com.game.entity.Player;
 import com.game.entity.Profession;
 import com.game.entity.Race;
 import com.game.service.PlayersService;
-import com.game.util.Util;
+import com.game.util.BadRequestException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -90,6 +90,9 @@ public class PlayerRestController {
                 || body.getProfession() == null || body.getBirthday() == null || body.getExperience() == null)
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
+        if (body.getName().equals("") || body.getName().equals(" "))
+            throw new BadRequestException("Bad request");
+
         if (body.getName().length() < 1 || body.getName().length() > 12)
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
@@ -115,19 +118,16 @@ public class PlayerRestController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Player> getPlayer(@PathVariable("id") String id) {
-        if (Util.checkId(id).equals(new ResponseEntity<>(HttpStatus.BAD_REQUEST)))
+        if (Player.checkId(id).equals(new ResponseEntity<>(HttpStatus.BAD_REQUEST)))
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
         return new ResponseEntity<>(playersService.findPlayerById(Long.parseLong(id)), HttpStatus.OK);
     }
 
-    @PutMapping("/{id}")
+    @PostMapping("/{id}")
     public ResponseEntity<Player> updatePlayer(@PathVariable("id") String id, @RequestBody Player player) {
-        if (Util.checkId(id).equals(new ResponseEntity<>(HttpStatus.BAD_REQUEST)) ||
-                player.getExperience() != null && player.getExperience() < 0 || player.getExperience() > 10000000
-                || player.getBirthday() != null && player.getBirthday().getTime() < 0) {
+        if (Player.invalidParameters(player, Long.parseLong(id)))
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
 
         Player responsePlayer = playersService.updatePlayer(Long.parseLong(id), player);
 
@@ -139,13 +139,12 @@ public class PlayerRestController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deletePlayer(@PathVariable("id") String id) {
-        if (Util.checkId(id).equals(new ResponseEntity<>(HttpStatus.BAD_REQUEST)))
+        if (Player.checkId(id).equals(new ResponseEntity<>(HttpStatus.BAD_REQUEST)))
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
         if (playersService.delete(Long.parseLong(id)))
             return new ResponseEntity<>(HttpStatus.OK);
-        else return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        else
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
-
-
 }

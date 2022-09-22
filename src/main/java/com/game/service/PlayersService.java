@@ -5,7 +5,6 @@ import com.game.entity.Profession;
 import com.game.entity.Race;
 import com.game.repository.PlayersRepository;
 import com.game.util.PlayerNotFoundException;
-import com.game.util.Util;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -43,7 +42,7 @@ public class PlayersService {
         if (player.getBanned() == null)
             player.setBanned(false);
 
-        Util.setLevelAndExperience(player);
+        Player.setLevelAndExperience(player);
 
         return playersRepository.saveAndFlush(player);
     }
@@ -73,7 +72,7 @@ public class PlayersService {
         if (player.getExperience() != null)
             responsePlayer.setExperience(player.getExperience());
 
-        Util.setLevelAndExperience(responsePlayer);
+        Player.setLevelAndExperience(responsePlayer);
         return playersRepository.save(responsePlayer);
     }
 

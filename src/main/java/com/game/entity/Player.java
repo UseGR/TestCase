@@ -1,6 +1,9 @@
 package com.game.entity;
 
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
 import javax.persistence.*;
 import java.util.Date;
 
@@ -119,5 +122,36 @@ public class Player {
 
     public void setBanned(Boolean banned) {
         this.banned = banned;
+    }
+
+    public static ResponseEntity<HttpStatus> checkId(String id) {
+        try {
+            if (id == null || Long.parseLong(id) <= 0 || id.equals(""))
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            else
+                return new ResponseEntity<>(HttpStatus.OK);
+
+        } catch (NumberFormatException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    public static boolean invalidParameters(Player player, Long id) {
+        return (id <= 0 || player.getExperience() != null && (player.getExperience() < 0 || player.getExperience() > 10000000))
+                || (player.getBirthday() != null && player.getBirthday().getTime() < 0);
+
+    }
+
+    public static void setLevelAndExperience(Player player) {
+        player.setLevel(computeLevel(player));
+        player.setUntilNextLevel(computeExperience(player));
+    }
+
+    private static int computeLevel(Player player) {
+        return (int) ((Math.sqrt(2500 + 200 * player.getExperience()) - 50) / 100);
+    }
+
+    private static int computeExperience(Player player) {
+        return 50 * (computeLevel(player) + 1) * (computeLevel(player) + 2) - player.getExperience();
     }
 }
